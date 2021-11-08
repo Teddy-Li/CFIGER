@@ -1,9 +1,9 @@
 # Chinese Fine-Grained entity typing under FIGER ontology
-A repository for a Chinese fine-grained entity typing dataset based on the FIGER ontology, based on
+CFIGER: A repository for a Chinese fine-grained entity typing dataset based on the FIGER ontology, based on
 [A Chinese Corpus for Fine-grained Entity Typing](https://github.com/HKUST-KnowComp/cfet).
 
 ## Annotation Process
-The dataset has been annotated through label mapping: we manually mapped the tokens from each of the ~6000 
+The CFIGER dataset has been annotated through label mapping: we manually mapped the tokens from each of the ~6000 
 ultra-fine-grained types to a FIGER type. The resulting mappings are [here](https://drive.google.com/file/d/1dfJrqUXBSn1wU0AKlrRlRNedbGaRSq8B/view?usp=sharing), they should be put 
 under [./u2figer](./u2figer); the resulting re-annotated dataset is [here](https://drive.google.com/file/d/1wKr4X5FU4GelwnlSKxOv2TFCx8JbTzTL/view?usp=sharing), decompose the zip file and 
 put it under the root directory.
