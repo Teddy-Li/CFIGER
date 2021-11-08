@@ -263,6 +263,7 @@ class fet_model(nn.Module):
                 bert_context_hidden = bert_output[0] + bert_output[2:5]
                 context_hidden = torch.cat(bert_context_hidden, dim=2)
             context_hidden = context_hidden[list(range(context_hidden.size(0))), mention_token_idxs, :]
+            # print("context hidden shape: ", context_hidden.shape)
 
         elif self.use_lstm:
             (context_token_tensor, mention_token_idx_tensor, mstr_token_seqs, mstr_token_seqs_lens) = input_dataset
@@ -273,11 +274,12 @@ class fet_model(nn.Module):
 
             context_hidden = self.run_lstm(context_token_seqs, seq_lens)
             context_hidden = context_hidden[list(range(context_token_seqs.size(0))), mention_token_idxs, :]
+
             context_hidden = context_hidden[back_idxs]
 
-        mstr_vecs_avg = torch.div(torch.sum(mstr_token_seqs, dim=1), mstr_token_seqs_lens)
+        mstr_vecs_avg = torch.div(torch.sum(mstr_token_seqs.double(), dim=1), mstr_token_seqs_lens)
 
-        cat_output = torch.cat((context_hidden, mstr_vecs_avg), dim=1)
+        cat_output = torch.cat((context_hidden, mstr_vecs_avg.float()), dim=1)
 
 
         if self.dataset == 'ufet':

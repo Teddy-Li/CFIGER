@@ -7,8 +7,9 @@ import random
 import json
 from os.path import join
 import time
+import numpy as np
 
-from pytorch_transformers.tokenization_bert import BertTokenizer
+from transformers import BertTokenizer
 
 import config
 from utils import utils, datautils, model_utils
@@ -57,10 +58,14 @@ class GlobalRes:
             self.fine_idxs = [k for k, v in self.type_id2type_dict.items() if v not in self.general_type_set]
 
         tic = time.time()
-        WORD_VECS_FILE = f'/data/cleeag/word_embeddings/{config.mention_tokenizer_name}/' \
-                         f'{config.mention_tokenizer_name}_tokenizer&vecs.pkl'
+        WORD_VECS_FILE = f'./cfet_data/pkls/' \
+                         f'{config.mention_tokenizer_name}_tokenizer_vecs.pkl'
         print('loading {} ...'.format(WORD_VECS_FILE), end=' ', flush=True)
         self.token2token_id_dict, self.token_vecs = datautils.load_pickle_data(WORD_VECS_FILE)
+        token_vec_nda = np.ndarray([len(self.token_vecs), len(self.token_vecs[0])], dtype=np.float)
+        for iidx, item in enumerate(self.token_vecs):
+            token_vec_nda[iidx] = item
+        self.token_vecs = token_vec_nda
         print(f'done, {time.time() - tic :.2f} secs taken.', flush=True)
         self.zero_pad_token_id = self.token2token_id_dict[config.TOKEN_ZERO_PAD]
         self.mention_token_id = self.token2token_id_dict[config.TOKEN_MENTION]
@@ -96,25 +101,36 @@ def samples_to_tensor(config, gres, samples):
     seq_lens: sorted by length of sequence
     back_idxs: id to recover sequence by batch (dim 1)
     """
-
+    # tokenized in BertTokenizer format
+    context_char_list = [gres.tokenizer.tokenize(s['sentence'][:config.max_seq_length]) if config.use_bert else gres.tokenizer.tokenize(s['sentence']) for s in samples]
+    context_token_list = []
+    for sent in context_char_list:
+        context_token_list.append(gres.tokenizer.build_inputs_with_special_tokens(gres.tokenizer.convert_tokens_to_ids(sent)))
 
     context_token_tensor = torch.nn.utils.rnn.pad_sequence(
-        [torch.tensor(s['sentence'][:config.max_seq_length]) if config.use_bert else torch.tensor(s['sentence'])
-         for s in samples],
+        [torch.tensor(x) for x in context_token_list],
         batch_first=True,
         padding_value=0)
 
+    # tokenized in fasttext format
     mstr_token_seqs = [torch.tensor([gres.token2token_id_dict.get(x, gres.unknown_token_id)
-                                     for x in gres.tokenizer.tokenize(s['mention'])])
+                                     for x in gres.tokenizer.tokenize(s['mention'])], dtype=torch.long)
                        for s in samples]
-    mstr_token_seqs_lens = torch.tensor([len(seq) if len(seq) > 0 else 1 for seq in mstr_token_seqs], dtype=torch.float32).view(-1, 1)
+    mstr_token_seqs_lens = torch.tensor([len(seq) if len(seq) > 0 else 1 for seq in mstr_token_seqs], dtype=torch.double).view(-1, 1)
     mstr_token_seqs = nn.utils.rnn.pad_sequence(mstr_token_seqs, batch_first=True, padding_value=0)
     mstr_token_seqs = gres.embedding_layer(mstr_token_seqs)
 
     max_seq_length = config.max_seq_length if config.use_bert else context_token_tensor.shape[1]
-    mention_token_idx_tensor = torch.tensor([s['mention_token_index_in_sent']
-                                             if s['mention_token_index_in_sent'] < max_seq_length
-                                             else max_seq_length - 1 for s in samples], dtype=torch.long)
+
+    # for now using the first token as the representitive token for context representation, but may adopt other designs
+    if config.context_tok_choice == 'first':
+        mention_token_idx_tensor = torch.tensor([min(s['span'][0], max_seq_length-1) for s in samples], dtype=torch.long)
+    elif config.context_tok_choice == 'last':
+        mention_token_idx_tensor = torch.tensor([min(s['span'][1]-1, max_seq_length-1) for s in samples], dtype=torch.long)
+    elif config.context_tok_choice == 'both':
+        mention_token_idx_tensor = torch.tensor([[min(s['span'][0], max_seq_length-1), min(s['span'][1]-1, max_seq_length-1)] for s in samples], dtype=torch.long)
+    else:
+        raise AssertionError
 
     if config.dataset == 'ufet':
         type_vecs = torch.tensor([
@@ -126,11 +142,10 @@ def samples_to_tensor(config, gres, samples):
     else:
         type_vecs = torch.tensor([
             utils.onehot_encode(
-                [gres.type2type_id_dict[x] for x in general_mapping(s['types'], gres)], len(gres.type2type_id_dict))
+                [gres.type2type_id_dict[x] for x in general_mapping(s['figer_types_first_list'], gres)], len(gres.type2type_id_dict))
             for s in samples],
             dtype=torch.float32)
     return (context_token_tensor, mention_token_idx_tensor, mstr_token_seqs, mstr_token_seqs_lens), type_vecs
-
 
 
 def general_mapping(type_ls, gres):

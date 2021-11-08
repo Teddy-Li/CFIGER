@@ -2,12 +2,12 @@ from platform import platform
 from os.path import join
 import socket
 
-DATA_DIR = '/data/cleeag/distant_supervision_data'
+DATA_DIR = 'cfet_data/data/pkls/'
 UFET_DATA_DIR = '/data/cleeag/ufet_data'
 
-TOKEN_UNK = '<UNK>'
-TOKEN_ZERO_PAD = '<ZPAD>'
-TOKEN_EMPTY_PAD = '<EPAD>'
+TOKEN_UNK = '[UNK]'
+TOKEN_ZERO_PAD = '[PAD]'
+TOKEN_EMPTY_PAD = '[PAD]'
 TOKEN_MENTION = '[MASK]'
 
 RANDOM_SEED = 771
@@ -19,27 +19,33 @@ LOG_DIR = join(DATA_DIR, 'log')
 
 
 CUFE_FILES = {
-    'training_data_prefix': join(DATA_DIR, 'training_data', 'train-wiki_data_zh-cufe_type2general_zh'),
-    'crowd_training_data_prefix':join(DATA_DIR, 'training_data', 'crowd_data'),
-    'test_data_file_prefix':'/data/cleeag/distant_supervision_data/training_data/crowd_data'
+    'training_data_prefix': join(DATA_DIR, 'wiki_data'),
+    'crowd_training_data_prefix':join(DATA_DIR, 'crowd_data'),
+    'test_data_file_prefix':'/data/cleeag/distant_supervision_data/wiki_data/crowd_data'
 }
 
 UFET_FILES = {
-    'training_data_prefix': join(UFET_DATA_DIR, 'training_data', 'ufet-mixed'),
+    'training_data_prefix': join(UFET_DATA_DIR, 'wiki_data', 'ufet-mixed'),
     'ufet_training_type_set': join(UFET_DATA_DIR, 'type_set', 'types.txt'),
 }
 
 dir_suffix = None
 
-GENERAL_TYPES_MAPPING = f'/data/cleeag/distant_supervision_data/type_sets/cufe_type2general_zh.pkl'
+GENERAL_TYPES_MAPPING = './cfet_data/types/figer_type2general_zh.pkl'
 
-MODEL_CACHE_PATH =  '/data/cleeag/transformers_model_cache'
+MODEL_CACHE_PATH = './cfet_data/models/transformers_model_cache'
+
+prediction_pkl_name = 'webhose_arg_with_figer_%s.pkl'
+
+prediction_setting = 'argument'
 
 
 """------------------------- training configurations -------------------------"""
 max_seq_length = 128
 # eval_batch_size = 50
 dropout = 0.5
+
+context_tok_choice = 'first'
 
 # dimensions
 lstm_hidden_dim = 150
@@ -77,17 +83,17 @@ if dataset == 'ufet':
     # dataset_type = 'gen'
     # dataset_type = 'onto'
     model_name = 'bert-base-cased' if use_bert else 'bi-lstm'
-    WORD_VECS_FILE = '/data/cleeag/word_embeddings/glove/glove_tokenizer&vecs.pkl'
-    CROWD_TRAIN_DATA_PREFIX = '/data/cleeag/ufet_data/training_data/raw/ufet-crowd_train'
+    WORD_VECS_FILE = None
+    CROWD_TRAIN_DATA_PREFIX = None
 
 elif dataset == 'cufe':
     model_name = 'bert-base-chinese' if use_bert else 'bi-lstm'
-    WORD_VECS_FILE = '/data/cleeag/word_embeddings/fasttext/fasttext_tokenizer&vecs-zh.pkl'
-    CROWD_TRAIN_DATA_PREFIX = '/data/cleeag/distant_supervision_data/training_data/crowd_data'
+    WORD_VECS_FILE = './cfet_data/pkls/fasttext_tokenizer_vecs.pkl'
+    CROWD_TRAIN_DATA_PREFIX = None
 
 
 only_general_types = 0
-without_general_types = 0
+without_general_types = 1
 ANSWER_NUM_DICT = {"open": 10331, "onto": 89, "wiki": 4600, "kb": 130, "gen": 9}
 
 if use_bert:
@@ -101,14 +107,14 @@ use_gpu = 1
 # gpu_ids = [0, 1, 2, 3]
 # gpu_ids = [0, 1]
 if use_bert:
-    gpu_ids = [2]
+    gpu_ids = [1]
     # gpu_ids = [1]
     # gpu_ids = [3]
     # gpu_ids = [1, 2]
 elif use_lstm:
     # gpu_ids = [1]
     # gpu_ids = [2, 3]
-    gpu_ids = [2]
+    gpu_ids = [1]
     # gpu_ids = [0, 1, 2, 3]
 
 if use_bert:
@@ -133,16 +139,18 @@ continue_train = 0
 # continue_train = 'ufet_lstm'
 CONTINUE_TRAINING_PATH = {
     'lstm_no_gen':'',
-    'lstm_with_gen': '/data/cleeag/distant_supervision_data/training_data/train-wiki_data_zh-cufe_type2general_zh-fasttext/models/bi-lstm-11_21_0400.pt',
-    'lstm_with_gen_babylon': '/data/cleeag/distant_supervision_data/training_data/train-wiki_data_zh-cufe_type2general_zh-fasttext/models/bi-lstm-11_21_0400.pt',
+    'lstm_with_gen': '',
+    'lstm_with_gen_babylon': '',
     'bert_no_gen': '',
-    'bert_with_gen': '/data/cleeag/distant_supervision_data/training_data/train-wiki_data_zh-cufe_type2general_zh-bert/models/bert-base-chinese-11_21_0356.pt',
-    'ufet_lstm':'/data/cleeag/ufet_data/training_data/ufet-mixed-glove/models/bi-lstm-11_17_2156.pt',
-    # 'ufet_bert': '/data/cleeag/ufet_data/training_data/ufet-mixed-bert/models/bert-base-cased-11_20_1749.pt'
+    'bert_with_gen': '',
+    'ufet_lstm':'',
+    # 'ufet_bert': ''
 
 }
 
-TRANSFER_MODEL_PATH = '/data/cleeag/ufet_data/training_data/ufet-mixed-babylon/models/bi-lstm-11_16_0032.pt'
+TRANSFER_MODEL_PATH = ''
+
+SAVED_MODEL_PATH = './cfet_data/data/pkls/wiki_data/models/bert-base-chinese-01_30_.pt '
 
 if use_bert:
     # learning_rate = 3e-6 if train_on_crowd  else 3e-5
@@ -152,11 +160,11 @@ else:
 
 if dataset == 'ufet':
     # eval_cycle = 300 if not use_bert else 1000
-    eval_cycle = 100
+    eval_cycle = 1000
 elif dataset == 'cufe' and train_on_crowd:
     eval_cycle = 5
 else :
-    eval_cycle = 100
+    eval_cycle = 5
 
 test = 0
 if test:

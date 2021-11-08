@@ -19,7 +19,7 @@ class MultiSimpleDecoder(nn.Module):
     def __init__(self, output_dim):
         super(MultiSimpleDecoder, self).__init__()
         self.linear = nn.Linear(output_dim, config.ANSWER_NUM_DICT['open'],
-                                bias=False)  # (out_features x in_features)
+								bias=False)  # (out_features x in_features)
 
     def forward(self, inputs, output_type):
         if output_type == "open":
@@ -33,6 +33,7 @@ class MultiSimpleDecoder(nn.Module):
         else:
             raise ValueError('Decoder error: output type not one of the valid')
 
+
 def build_lstm_hidden(config):
     batch_size = config.batch_size
     lstm_hidden_dim = config.lstm_hidden_dim
@@ -45,6 +46,7 @@ def build_lstm_hidden(config):
                      torch.zeros(batch_size, 2 , lstm_hidden_dim,
                                  requires_grad=True))
     return lstm_hidden_1, lstm_hidden_2
+
 
 def build_hierarchy_vecs(type_vocab, type_to_id_dict):
     from utils import utils
@@ -62,6 +64,7 @@ def build_hierarchy_vecs(type_vocab, type_to_id_dict):
             child_type_vecs[type_to_id_dict[p]][type_to_id_dict[t]] = 1
     l1_type_indices = np.array(l1_type_indices, np.int32)
     return l1_type_indices, l1_type_vec, child_type_vecs
+
 
 def get_len_sorted_context_seqs_input(device, context_token_list, mention_token_idxs):
     data_tups = list(enumerate(zip(context_token_list, mention_token_idxs)))
@@ -93,39 +96,39 @@ def check_breakdown_performance():
     run = '11_21_2338'
     # run = '11_21_2340'
 
-    # model_path = f'/data/cleeag/distant_supervision_data/training_data/train-wiki_data_zh-cufe_type2general_zh-bert/models/bert-base-chinese-{run}.pt'
-    # res_dir = f'/data/cleeag/distant_supervision_data/training_data/train-wiki_data_zh-cufe_type2general_zh-bert/{run}-results'
-    # sample_path = '/data/cleeag/distant_supervision_data/training_data/train-wiki_data_zh-cufe_type2general_zh-bert/test.pkl'
+    # model_path = f'/data/cleeag/distant_supervision_data/wiki_data/train-wiki_data_zh-cufe_type2general_zh-bert/models/bert-base-chinese-{run}.pt'
+    # res_dir = f'/data/cleeag/distant_supervision_data/wiki_data/train-wiki_data_zh-cufe_type2general_zh-bert/{run}-results'
+    # sample_path = '/data/cleeag/distant_supervision_data/wiki_data/train-wiki_data_zh-cufe_type2general_zh-bert/test.pkl'
 
-    # model_path = f'/data/cleeag/distant_supervision_data/training_data/train-wiki_data_zh-cufe_type2general_zh-fasttext/models/bi-lstm-{run}.pt'
-    # res_dir = f'/data/cleeag/distant_supervision_data/training_data/train-wiki_data_zh-cufe_type2general_zh-fasttext/{run}-results'
-    # sample_path = '/data/cleeag/distant_supervision_data/training_data/train-wiki_data_zh-cufe_type2general_zh-fasttext/test.pkl'
+    # model_path = f'/data/cleeag/distant_supervision_data/wiki_data/train-wiki_data_zh-cufe_type2general_zh-fasttext/models/bi-lstm-{run}.pt'
+    # res_dir = f'/data/cleeag/distant_supervision_data/wiki_data/train-wiki_data_zh-cufe_type2general_zh-fasttext/{run}-results'
+    # sample_path = '/data/cleeag/distant_supervision_data/wiki_data/train-wiki_data_zh-cufe_type2general_zh-fasttext/test.pkl'
 
-    model_path = f'/data/cleeag/ufet_data/training_data/ufet-mixed-glove/models/bi-lstm-{run}.pt'
-    res_dir = f'/data/cleeag/ufet_data/training_data/ufet-mixed-glove/{run}-results'
-    sample_path = '/data/cleeag/ufet_data/training_data/ufet-mixed-glove/test.pkl'
+    model_path = f'/data/cleeag/ufet_data/wiki_data/ufet-mixed-glove/models/bi-lstm-{run}.pt'
+    res_dir = f'/data/cleeag/ufet_data/wiki_data/ufet-mixed-glove/{run}-results'
+    sample_path = '/data/cleeag/ufet_data/wiki_data/ufet-mixed-glove/test.pkl'
 
-    model_path = f'/data/cleeag/ufet_data/training_data/ufet-mixed-bert/models/bert-base-cased-{run}.pt'
-    res_dir = f'/data/cleeag/ufet_data/training_data/ufet-mixed-bert/{run}-results'
-    sample_path = '/data/cleeag/ufet_data/training_data/ufet-mixed-bert/test.pkl'
+    model_path = f'/data/cleeag/ufet_data/wiki_data/ufet-mixed-bert/models/bert-base-cased-{run}.pt'
+    res_dir = f'/data/cleeag/ufet_data/wiki_data/ufet-mixed-bert/{run}-results'
+    sample_path = '/data/cleeag/ufet_data/wiki_data/ufet-mixed-bert/test.pkl'
 
     run = '11_21_1848'
 
-    model_path = f'/data/cleeag/distant_supervision_data/training_data/crowd_data-fasttext/models/bi-lstm-{run}.pt'
-    res_dir = f'/data/cleeag/distant_supervision_data/training_data/crowd_data-fasttext/{run}-results'
-    sample_path = '/data/cleeag/distant_supervision_data/training_data/crowd_data-fasttext/test.pkl'
+    model_path = f'/data/cleeag/distant_supervision_data/wiki_data/crowd_data-fasttext/models/bi-lstm-{run}.pt'
+    res_dir = f'/data/cleeag/distant_supervision_data/wiki_data/crowd_data-fasttext/{run}-results'
+    sample_path = '/data/cleeag/distant_supervision_data/wiki_data/crowd_data-fasttext/test.pkl'
 
     run = '11_23_1135'
 
-    model_path = f'/data/cleeag/distant_supervision_data/training_data/train-wiki_data_zh-cufe_type2general_zh-babylon/models/bi-lstm-{run}.pt'
-    res_dir = f'/data/cleeag/distant_supervision_data/training_data/train-wiki_data_zh-cufe_type2general_zh-babylon/{run}-results'
-    sample_path = '/data/cleeag/distant_supervision_data/training_data/train-wiki_data_zh-cufe_type2general_zh-babylon/test.pkl'
+    model_path = f'/data/cleeag/distant_supervision_data/wiki_data/train-wiki_data_zh-cufe_type2general_zh-babylon/models/bi-lstm-{run}.pt'
+    res_dir = f'/data/cleeag/distant_supervision_data/wiki_data/train-wiki_data_zh-cufe_type2general_zh-babylon/{run}-results'
+    sample_path = '/data/cleeag/distant_supervision_data/wiki_data/train-wiki_data_zh-cufe_type2general_zh-babylon/test.pkl'
 
     gres = exp_utils.GlobalRes(config)
 
     samples = pkl.load(file=open(sample_path, 'rb'))
     true_labels_dict = {s['mention_id']: [gres.type2type_id_dict.get(x) for x in
-                                               exp_utils.general_mapping(s['types'], gres)] for s in samples}
+										  exp_utils.general_mapping(s['types'], gres)] for s in samples}
     if config.dataset == 'cufe':
         gen_true_labels_dict = {k:[v for v in vs if v in gres.gen_idxs] for k, vs in true_labels_dict.items()}
         gen_true_labels_dict = {k: v for k, v in gen_true_labels_dict.items() if len(v) > 0}
@@ -135,9 +138,7 @@ def check_breakdown_performance():
     if config.dataset == 'ufet':
         fine_true_labels_dict = {k: v for k, v in true_labels_dict.items() if len(v) > 0}
 
-
-
-    device = torch.device('cuda:3')
+    device = torch.device('cuda:0') if torch.cuda.is_available else torch.device('cpu')
     model = fet.fet_model(config, device, gres)
     model_state_dict = torch.load(model_path)
     model_state_dict = {'.'.join(k.split('.')[1:]): v for k, v in model_state_dict.items()}
@@ -197,6 +198,7 @@ def get_avg_token_vecs(device, embedding_layer: nn.Embedding, token_seqs):
     vecs_avg = torch.div(torch.sum(token_vecs, dim=1), lens)
     return vecs_avg
 
+
 def eval_fetel(config, gres, model, samples, true_labels_dict):
     batch_size = config.batch_size
     n_batches = (len(samples) + batch_size - 1) // batch_size
@@ -244,13 +246,13 @@ def eval_fetel(config, gres, model, samples, true_labels_dict):
                     general_types = exp_utils.get_general_types(sample['types'], gres)
                     result_dict = {'mention_id': sample['mention_id'],
                                    'mention': sample['mention'],
-                                   'labels': list(set(sample['types'] + general_types)),
+                                   'labels': list(set(sample['figer_types_first_list'] + general_types)),
                                    'general_types': general_types,
                                    'preds': [gres.type_id2type_dict[x] for x in type_ids_pred], }
                 else:
                     result_dict = {'mention_id': sample['mention_id'],
                                    'mention': sample['mention'],
-                                   'labels': [x for x in sample['types']
+                                   'labels': [x for x in sample['figer_types_first_list']
                                               if x in gres.type2type_id_dict],
                                    'preds': [gres.type_id2type_dict[x] for x in type_ids_pred] }
                     if len(result_dict['labels']) == 0:
@@ -275,3 +277,93 @@ def eval_fetel(config, gres, model, samples, true_labels_dict):
     maf1, ma_p, ma_r = utils.macrof1(true_labels_dict, pred_labels_dict, return_pnr=True)
     mif1 = utils.microf1(true_labels_dict, pred_labels_dict)
     return sum(losses), strict_acc, partial_acc, maf1, ma_p, ma_r, mif1, result_objs, incorrect_result_objs
+
+
+def predict_fetel(config, gres, model, samples, true_labels_dict):
+    batch_size = config.batch_size
+    n_batches = (len(samples) + batch_size - 1) // batch_size
+    losses = list()
+    pred_labels_dict = dict()
+    pred_labels_dict_test = dict()
+    result_objs = list()
+    if hasattr(model, 'module'):
+        device = model.module.device
+        model.module.eval()
+    else:
+        device = model.device
+        model.eval()
+
+    for i in range(n_batches):
+        if i % 1000 == 0 and i > 0:
+            print("evaluating on batch number %d / %d" % (i, n_batches))
+        batch_beg, batch_end = i * batch_size, min((i + 1) * batch_size, len(samples))
+        batch_samples = samples[batch_beg:batch_end]
+        input_dataset, type_vecs = exp_utils.samples_to_tensor(config, gres, batch_samples)
+        input_dataset = tuple(x.to(device) for x in input_dataset)
+        type_vecs = type_vecs.to(device)
+
+        with torch.no_grad():
+            logits = model(input_dataset, gres)
+            if hasattr(model, 'module'):
+                loss = model.module.get_loss(logits, type_vecs)
+                if config.dataset == 'cufe':
+                    preds = model.module.inference_full(logits)
+
+                else:
+                    preds = model.module.inference_full(logits)
+
+            else:
+                loss = model.get_loss(logits, type_vecs)
+                preds = model.inference_full(logits)
+
+        losses.append(loss)
+
+        for j, (sample, type_ids_pred, sample_logits) in enumerate(
+                zip(batch_samples, preds, logits.data.cpu().numpy())):
+            labels = type_ids_pred
+            pred_labels_dict[sample['mention_id']] = labels
+            sample_logits = [float(v) for v in sample_logits]
+
+            if config.prediction_setting == 'argument':
+                result_dict = {'mention_id': sample['mention_id'],
+                               'mention': sample['mention'],
+                               'labels': [x for x in sample['figer_types_first_list']
+                                          if x in gres.type2type_id_dict],
+                               'preds': [gres.type_id2type_dict[x] for x in type_ids_pred],
+                               'logits': sample_logits}
+            elif config.prediction_setting == 'ner':
+                result_dict = {'mention_id': sample['mention_id'],
+                               'mention': sample['mention'],
+                               'labels': [x for x in sample['figer_types_first_list']
+                                          if x in gres.type2type_id_dict],
+                               'preds': [gres.type_id2type_dict[x] for x in type_ids_pred]}
+            else:
+                raise NotImplementedError
+            '''
+            if config.dataset == 'cufe' and not config.without_general_types:
+                general_types = exp_utils.get_general_types(sample['types'], gres)
+                result_dict = {'mention_id': sample['mention_id'],
+                               'mention': sample['mention'],
+                               'labels': list(set(sample['figer_types_first_list'] + general_types)),
+                               'general_types': general_types,
+                               'preds': [gres.type_id2type_dict[x] for x in type_ids_pred],
+                               'logits': sample_logits}
+            else:
+                result_dict = {'mention_id': sample['mention_id'],
+                               'mention': sample['mention'],
+                               'labels': [x for x in sample['figer_types_first_list']
+                                          if x in gres.type2type_id_dict],
+                               'preds': [gres.type_id2type_dict[x] for x in type_ids_pred],
+                               'logits': sample_logits}
+            '''
+            result_objs.append(result_dict)
+            # 'logits': [float(v) for v in sample_logits]})
+
+    # print(f'if all predict {gres.type2type_id_dict["人"]}: strict: {utils.strict_acc(true_labels_dict, pred_labels_dict_test)}, '
+    #       f'partial: {utils.strict_acc(true_labels_dict, pred_labels_dict_test)}')
+    true_labels_dict = {k:v for k, v in true_labels_dict.items() if len(v)>0}
+    strict_acc = 0.0
+    partial_acc = 0.0
+    maf1, ma_p, ma_r = 0.0, 0.0, 0.0
+    mif1 = 0.0
+    return sum(losses), strict_acc, partial_acc, maf1, ma_p, ma_r, mif1, result_objs

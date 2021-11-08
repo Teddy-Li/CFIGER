@@ -17,7 +17,6 @@ from utils.fet import fet_model
 import config
 
 
-
 def train_model():
     if config.dataset == 'cufe':
         data_prefix = config.CUFE_FILES['training_data_prefix']
@@ -27,8 +26,7 @@ def train_model():
     elif config.dataset == 'ufet':
         data_prefix = config.UFET_FILES['training_data_prefix']
 
-
-    data_prefix += f'-{config.seq_tokenizer_name}'
+    # data_prefix += f'-{config.seq_tokenizer_name}'
     if config.dir_suffix:
         data_prefix += '-' + config.dir_suffix
     if not os.path.isdir(data_prefix): os.mkdir(data_prefix)
@@ -114,11 +112,11 @@ def train_model():
         dev_samples = datautils.load_pickle_data(dev_data_pkl)
         print('done', flush=True)
         dev_true_labels_dict = {s['mention_id']: [gres.type2type_id_dict.get(x) for x in
-                                                  exp_utils.general_mapping(s['types'], gres)] for s in dev_samples}
+                                                  exp_utils.general_mapping(s['figer_types_first_list'], gres)] for s in dev_samples}
 
         test_samples = datautils.load_pickle_data(test_data_pkl)
         test_true_labels_dict = {s['mention_id']: [gres.type2type_id_dict.get(x) for x in
-                                                   exp_utils.general_mapping(s['types'], gres)] for s in test_samples}
+                                                   exp_utils.general_mapping(s['figer_types_first_list'], gres)] for s in test_samples}
 
     logging.info(f'total training samples: {len(training_samples)}, '
                  f'dev samples: {len(dev_samples)}, testing samples: {len(test_samples)}')
@@ -126,7 +124,7 @@ def train_model():
     if not config.test:
         result_dir = join(data_prefix, f'{str_today}-results')
         if config.dataset == 'cufe':
-            type_scope = 'general_types' if config.only_general_types else 'all_types'
+            type_scope = 'general_types' if config.only_general_types else 'figer_types'
         else:
             type_scope = config.dataset_type
         dev_results_file = join(result_dir,
@@ -154,7 +152,10 @@ def train_model():
 
     # setup training
     device = torch.device(f'cuda:{config.gpu_ids[0]}') if torch.cuda.device_count() > 0 else None
-    device_name = torch.cuda.get_device_name(config.gpu_ids[0])
+    if device is not None:
+        device_name = torch.cuda.get_device_name(config.gpu_ids[0])
+    else:
+        device_name = 'cpu'
 
     logging.info(f'running on device: {device_name}')
     logging.info('building model...')
@@ -180,12 +181,11 @@ def train_model():
         model.load_state_dict(cur_model_dict)
 
 
-
     model.to(device)
     model = torch.nn.DataParallel(model, device_ids=config.gpu_ids)
 
     batch_size = 32 if config.dataset == 'cufe' and config.train_on_crowd else config.batch_size
-    n_iter = 150 if config.dataset == 'cufe' and config.train_on_crowd else config.n_iter
+    n_iter = 150 if config.dataset == 'cufe' and config.train_on_crowd else config.n_iter # e.g. the number of epochs
     n_batches = (len(training_samples) + batch_size - 1) // batch_size
     n_steps = n_iter * n_batches
     eval_cycle = config.eval_cycle
@@ -211,25 +211,28 @@ def train_model():
         batch_beg, batch_end = batch_idx * batch_size, min((batch_idx + 1) * batch_size,
                                                                   len(training_samples))
         if config.dataset == 'ufet':
-            batch_samples = training_samples[batch_beg:batch_end - batch_size * 2 // 3] \
+            batch_samples = training_samples[batch_beg:batch_end - batch_size * 1 // 3] \
                             + random.choices(crowd_training_samples, k=batch_size * 1 // 3)
         elif config.dataset == 'cufe':
             if not config.train_on_crowd:
-                batch_samples = training_samples[batch_beg:batch_end - batch_size * 2 // 3] \
+                # mix distant supervised samples with crowd-sourced gold samples
+                batch_samples = training_samples[batch_beg:batch_end - batch_size * 1 // 3] \
                                 + random.choices(crowd_training_samples, k=batch_size * 1 // 3)
             else:
                 batch_samples = training_samples[batch_beg:batch_end]
+        else:
+            raise AssertionError
 
-        try:
-            input_dataset, type_vecs = exp_utils.samples_to_tensor(config, gres, batch_samples)
+        input_dataset, type_vecs = exp_utils.samples_to_tensor(config, gres, batch_samples)
 
-            input_dataset = tuple(x.to(device) for x in input_dataset)
-            type_vecs = type_vecs.to(device)
-            model.module.train()
-            logits = model(input_dataset, gres)
-        except:
-            step += 1
-            continue
+        input_dataset = tuple(x.to(device) for x in input_dataset)
+        type_vecs = type_vecs.to(device)
+        model.module.train()
+        logits = model(input_dataset, gres)
+        #except Exception as e:
+        #    print(e)
+        #    step += 1
+        #    continue
 
         if config.dataset == 'ufet':
             loss = model.module.define_loss(logits, type_vecs, config.dataset_type)
