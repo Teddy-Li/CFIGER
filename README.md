@@ -23,7 +23,7 @@ which as shown below, has better generalization properties than the present base
 can be found in another repository [here](https://github.com/Teddy-Li/hierarchical-typing).
 
 ## Results
-![Coming soon.]()
+![Evaluation Results for the Two Baselines on CFIGER dataset.](./results.png)
 
 ## Citing Us
 Coming soon.
