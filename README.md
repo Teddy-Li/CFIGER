@@ -4,7 +4,7 @@ A repository for a Chinese fine-grained entity typing dataset based on the FIGER
 
 ## Annotation Process
 The dataset has been annotated through label mapping: we manually mapped the tokens from each of the ~6000 
-ultra-fine-grained types to a FIGER type. The resulting mappings are [here](https://drive.google.com/file/d/1wKr4X5FU4GelwnlSKxOv2TFCx8JbTzTL/view?usp=sharing), they should be put 
+ultra-fine-grained types to a FIGER type; for more details please check our paper. The resulting mappings are [here](https://drive.google.com/file/d/1wKr4X5FU4GelwnlSKxOv2TFCx8JbTzTL/view?usp=sharing), they should be put 
 under [./u2figer](./u2figer); the resulting re-annotated dataset is [here](https://drive.google.com/file/d/1dfJrqUXBSn1wU0AKlrRlRNedbGaRSq8B/view?usp=sharing), decompose the zip file and 
 put it under the root directory.
 
