@@ -20,10 +20,10 @@ the correct path to the downloaded fastText model;
 
 We have also built another baseline model based on the [HierType](https://github.com/ctongfei/hierarchical-typing),
 which as shown below, has better generalization properties than the present baseline. The Chinese HierType baseline
-can be found in another repository [here]() (coming soon).
+can be found in another repository [here](https://github.com/Teddy-Li/hierarchical-typing).
 
 ## Results
-![Coming soon.](https://github.com/ "Results")
+![Coming soon.]()
 
 ## Citing Us
 Coming soon.
